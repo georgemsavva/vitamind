@@ -1,0 +1,614 @@
+---
+title: "25(OH)D Power calculation"
+author: "George Savva"
+format: html
+---
+
+## Design
+
+A study to test the bioavailability of vitamin from biofortified tomato soup compared to supplementation and to placebo.
+
+Three (maybe five?) parallel groups (also consider cross-over)
+
+Outcome is the 25(OH)D level following the intervention.
+
+### Objectives
+
+Does the biofortification increase serum 25(OH)D.
+What is the extent of this compared to D3 supplementation (with a comparable dose of Vitamin D).
+
+## Prior studies
+
+A systematic review of fortified foods was published in 2022.https://pubmed.ncbi.nlm.nih.gov/34308818/ 
+
+(Fisk was not included in the review but it was cited to show no difference between D2 and D3)
+
+Studies were carried out on a range of populations, in different groups.
+
+Study duration was:  8/12/16 weeks.  One 3 weeks and one 96 weeks.
+
+The effect size did vary depending on dose.  Lower than 1000IU/day led to 18.2 (12.7-23.7) increase compared to 41.5 for >1000IU per day.
+
+Estimate - per 100IU of vitamin D there is a 2nmol/L effect (over 12 weeks)
+
+Suppose we can give 10ug per day, so 400IU.
+This will lead to 8nmol/l which is about half the effect we see with the other low dose studies?
+
+Standard deviations of change scores seem to be the same in teh control groups and the treatment groups.
+
+They vary wildly between studies!  Change score difference of 20 to 30 standard deviation seems reasonable.  There appears to be an ICC of about 50% since standard deviations are similar 
+
+## Sample size calculation
+
+Simple paralel two-group comparison between an active and a control.  Ignores the within-person correlation etc.
+
+This leads to a sample size of 100-200 per group.
+
+```{r }
+power.t.test(n=NULL, delta=8 , sd=20 , power=0.8)
+power.t.test(n=NULL, delta=8 , sd=30 , power=0.8)
+```
+With a cross-over, this becomes
+
+```{r }
+power.t.test(n=NULL, delta=8 , sd=20 , power=0.8, type="paired")
+power.t.test(n=NULL, delta=8 , sd=30 , power=0.8, type="paired")
+```
+51 or 112 individuals depending on the variance.
+
+So the main problem is going to be getting enough Vitamin D into people.
+
+
+## Other design considerations
+
+Since you're giving people all this soup at the feasibility / dose escalation stage why not randomise it as well.
+
+
+### Pilot - just a dose escalation
+
+Tracey Robertson - small numbers OK - some trials have used very small numbers?
+5-10 tomatoes per soup.
+
+What does 'conversion' mean?  
+Do we need to convert pro vit-d into vit-d.
+Yes, we probably do.
+
+We could have an additional arm for pro vit-d.
+
+We can currently get 20 percent conversion.
+
+
+We need a study to optimise the conversion of pro vit d into vit d.
+
+pro vit d is concentrated in the skin.  so we need to keep that in.
+so we need to puree with skin on, then irradiate, then freeze try.
+
+
+Tracey - Robertson.  Fisk - study - N=6.  
+
+Andrea Darling - standard deviations vs standard errors.
+
+
+Yeast study 
+
+Waitlist control.
+
+Extracts supplements.. check it works or it doesn't.
+
+
+## Fisk study
+
+### Pilot study
+
+Correlation of 0.91 between repeat measures with a SD of 17 nmol/L
+delta is 10.  SD of a difference between repeat measures was 7.7
+
+So we do:
+
+```{r }
+power.t.test(delta=10 , sd=7.7, type="paired",sig.level = 0.01, power=0.9)
+```
+
+But they implied that they would use repeated measured to improve precision, so:
+
+```{r }
+power.t.test(delta=10 , sd=7.7*1/sqrt(2), type="paired",sig.level = 0.01, power=0.9)
+
+
+
+```
+This is the only way to get 8 per group from the supplied info, although its possible there was a fancier calculation using an RM-ANOVA that modelled the analysis done in the study.
+
+This also implies that repeating a measure is as good as recruiting a new person, which is probably very optimistic.  There's also nothing in the paper to suggest that they actually did this repeated baseline measurement?
+
+## Fisk data analysis
+
+Observed difference is:
+
+From 0 to 4 weeks:
+
+Placebo
+-3.4 (-8.2 to 1.5)
+
+Dose 1
+4.9 (-2.3 to 12.7)
+
+Dose 2
+11.9 (2.7 to 21.2)
+
+Dose 3
+13.6 (4.1 to 23.0)
+
+Dose 4
+19.7 (9.4 to 30.1)
+
+These look like log-transformed numbers, but the CIs are near enough symmetric. They are based on 8 people.
+
+Let's take these at face value.
+
+The 5-D2 group has mean change from baseline of:  4.9 (-2.3 to 12.7) ()
+
+This means that the standard error in change score is `r (12.7- -2.3)/4.6`. So the standard deviation in change scores is 9.2: `r (12.7- -2.3)/4.6 * sqrt(8)`
+
+For the 10-D2 group its 11.6: `r (23.0- 4.1)/4.6 * sqrt(8)`
+
+For the 5-D3 group its 9.4: `r (21.2- 4.7)/4.6 * sqrt(7)`
+
+For the 10-D3 group at four weeks the standard deviation of the change score is 12.72 (`r (30.1-9.4)/4.6 * sqrt(8)`)
+
+For the placebo group it's 5.96 (`r (1.5 - -8.2)/4.6 * sqrt(8)`)
+
+The baseline values had a standard deviation around 20-30! (Pooled standard deviation = `r mean(c(13.3,26.6,22.1,14.1,29.1)^2)^0.5`).  The change score sd is about half that implying an ICC of above 75%?!
+
+If we work based on the treatment effect estimates (This is 25-OH-D3 as an outcome but should be about the same):
+
+The standard error of mean difference is 4.7nmol/L.  So the standard deviation of a change score is: `r 4.7*sqrt(8)/sqrt(2)` 9.4.
+
+Does this work out?  If my standard deviations are correct then the standard error of the mean difference between placebo and 10-D3 should be
+
+`r sqrt( 5.96^2 / 8 + 12.72^2 / 8)` (4.97, close enough to 4.7 as its a different measurement )
+
+There are very few participants in these groups, so the standard deviation calculations are not very precise, although they are consistent.  It seems the standard deviation is higher with the increasing effect size, which isn't surprising.
+
+This implies an average change score SD of about 10 (combining the placebo and two active groups I looked at)
+
+Implies a sample size (for a difference between groups of 10 nmol/L) of:
+
+```{r }
+power.t.test(n=NULL, sd=10,delta=10,power=0.9)$n |> ceiling()
+```
+It looks like the standard deviation is higher for the larger effects.
+
+```{r }
+## The pilot study on which they based the sample size calculation.
+Commonsd = 17
+Variance = 17^2
+r2= 0.91^2
+r=0.91
+1-r
+#So the residual variance is 0.17 
+(1-r)*17^2
+# residual sd is 
+sqrt(2)*sqrt((1-r)*17^2)
+## Close enough (within a rounding error) to what they said they got in the pilot?
+```
+
+
+## Tripkovic
+
+What is the implied standard deviation of a change score from this study?
+
+The change in the placebo group alone was −11.2 nmol/L; 95% CI: −16.7, −5.8.
+
+This implies a standard deviation of change score of 22:  `r (-5.8 - -16.7)/4 * sqrt(65)`
+
+Comparison in change scores between placebo and D3J group was 42.9 (95% CI = 35 to 51)
+
+The confidence interval is symmetric about the mean which suggests a natural scale  not a log scale analysis (not clear from the stats description)
+
+The standard error for this comparison is about 1/4 times the CI width (big enough sample size), which is:
+
+`r (se_tripkovic = (51-35)/4)`
+
+The group sizes are 65 and 67, so the standard deviation of the change score is likely to be:
+
+`r (sd_tripkovic = se_tripkovic*sqrt(66)/sqrt(2))`
+
+So 23 nmol/L, agreeing with the placebo analysis.
+
+
+This would imply a sample size of:
+
+```{r }
+power.t.test(n=NULL, sd=23,delta=10,power=0.9)$n |> ceiling()
+```
+So 113 per group!
+
+It's possible that the model forces the variances to be much higher because of the very high effects induced by the treatment.
+
+For a cross-over you'd want:
+
+```{r }
+power.t.test(n=NULL, sd=23,delta=10,power=0.9, type="paired")$n |> ceiling()
+```
+
+58 pairs for each treatment contrast.
+
+
+### Varying standard deviation with 25-OH-D level
+
+This is important but difficult without the raw data from the study because the required info is not in the paper.
+
+```{r }
+
+```
+
+## Green 2010
+
+This is nice as it presents the main analysis in terms of ratios.
+
+But it starts in the summer and finishes in the winter as the aim is to see if vitamin D can prevent winter associated deficiencies.
+
+The difference of 19% (CI=7,32) corresponds to a ratio of:
+
+```{r }
+log(1.19)
+log(c(1.07,1.32)) |> diff()
+
+## On a natural log scale, a CI width of 0.21
+
+## Observed log ratio is 
+# 0.20
+log(65/53)
+
+## So a standard error of the mean difference of:
+0.21 / 4
+
+## And an effective standard deviation of 
+(0.21 / 4) / sqrt(1/36+1/36)
+## Oh.  OK that's about right.
+
+## 0.2227 This is quite a lot smaller (about half the size) as tripkovic suggests.
+
+## So, if we were to induce a difference of 30 vs 40 nmol/L, we would see a log-ratio of:
+
+log(30/40)
+
+# -0.29
+
+# power calculation
+
+power.t.test(n=NULL, delta= log(30/40) , sd=0.227 , power=0.9)
+power.t.test(n=NULL, delta= log(25/35) , sd=0.227 , power=0.9)
+# Suggests 11 per group for a change of 10..
+
+# Suggests 14/15 per group for a change of 30 to 40.
+
+power.t.test(n=NULL, delta= log(40/50) , sd=0.227 , power=0.9)
+
+# 23 per group for 40 to 50
+
+power.t.test(n=NULL, delta= log(65/53) , sd=0.227 , power=0.9)
+
+## 34 per group for 50 to 60 using this method.  27 for 65 to 53.
+## If you were to do this on the absolute scale it would correspond to a difference of:
+# 10 (4-20) (actually 4,10,17...)
+52 * c(1.07,1.19,1.32) - 52
+# So a standard error of 4, a standard deviation of:
+13 / 4 * sqrt(36) / sqrt(2)
+#17
+power.t.test(n=NULL, delta= 65-53 , sd=14 , power=0.9)
+# This suggests 30 per group should have been used.
+# Which I think is close to the truth here.
+
+# So our standard deviation will be lower, perhaps use 30 per group?
+```
+
+## Bonjour 2018
+
+Enrollment between January and April 2015
+
+Intervention goes into the spring/summer
+
+Stratification into two groups.
+
+16 weeks of intervention.
+
+Visits at 4,8,12,16 weeks.
+
+The 4 week visit will be very useful for us because its in winter (sort of)
+
+Three doses:
+
+None, Low (5ug), High (10ug)
+
+
+Sample size calculation:  They assumed a standard deviation of 10.
+
+So a sample size of:
+
+```{r }
+power.t.test(n=NULL, delta=7.5 , sd=10, power=0.9)
+## I say 39, they say 35.
+## Doesn't mention a correction for baseline adjustment which is what we could be seeing
+## Or the effect of having two treatment groups but I think that would be minimal.
+## Also ignores the stratification into high/low etc?
+## Anticipated a high drop-out (25%), but 133 of 140 actually completed (5% not included?)
+```
+
+Not able to detect a difference between the 5ug and the 10ug groups. (18.3 vs 23.5 p=0.116).
+I can work out what the standard deviation must have been from this!!
+
+```{r }
+p=0.116 # implies a t-statistic of 
+tstat = qt(1-p/2,50) # 1.599
+# The mean difference was
+md = 23.5 - 18.3 # 5.2
+# so the standard error of the mean difference was
+sem <- md / tstat # 3.25
+## This implies that the standard deviation of a single observation was: (n=45 per group)
+sem * sqrt(45) / sqrt(2)
+## 15.4
+
+# (This is 0 to 16 weeks) For the other two comparisons we can do a similar calculation
+
+# 18.3 vs 7.7 nmol/L, t test: p = 0.0007
+qt(1-0.0007/2, 88)# tstat of 3.3
+# Mean difference 
+18.3-7.7  # 10.6
+10.6/3.5  # SEM of 3.03
+3.03 * sqrt(45) / sqrt(2)
+# And for the final comparison:
+
+qt(1-0.000001/2,88)
+# t stat of 5.26
+# mean difference of 
+23.5 - 7.7
+# sem 
+15.8 / 5.26
+## 3.0
+3.0 * sqrt(45) / sqrt(2)
+
+## So 14.23 for a change score between 0 and 16 weeks.
+
+So say sd of 15 for a change score from this one, though its over a long time period.
+
+## Suggest a sample size of
+
+power.t.test(n=NULL, delta=10, sd=15, power=0.9)
+## 48 per group for 90% if sd=15
+power.t.test(n=NULL, delta=10, sd=10, power=0.9)
+## 22 per group for 90% if sd=10
+
+
+```
+
+
+## Bringing it together
+
+The problem seems to be that the effect we are trying to induce is additive (or less than additive given the poharmacokinetics?), while the standard deviation of the outcome measure appears to be multiplicative, relative to the measured amount. That is the standard deviation is on a log scale.
+
+So perhaps the only reasonable way to do the power calculation is by simulation, taking into account these likely distributions from the previous studies.
+
+```{r }
+library(data.table)
+library(ggplot2)
+oneDataSim <- function(N=20,d=10,sdlog=1,baselineGeoMean=1,sdBaselineLog=1){
+
+  df <- data.table(treatment = rep(c(0,1),each=N),
+                   baselineLevels = exp(rnorm(2*N,log(baselineGeoMean),sdBaselineLog)))
+    
+  df[ , treatmentEffect := baselineLevels + d*treatment]
+  df[ , observedBaseline := exp(rnorm(.N, log(baselineLevels), sdlog) )]
+  df[ , observedFollowUp := exp(rnorm(.N, log(baselineLevels+treatmentEffect), sdlog) )]
+  df
+  }
+
+getPvalue <- function(df){
+  lm1 <- lm( data=df , log(observedFollowUp) ~ treatment + observedBaseline )
+  coef(summary(lm1))["treatment","Pr(>|t|)"]
+}
+
+getlmerPvalue <- function(df){
+  mermod1 <- 
+  coef(summary(mermod1))["variableobservedFollowUp:treatment","Pr(>|t|)"]
+}
+
+
+
+getModel <- function(df){
+  lm( data=df , log(observedFollowUp) ~ treatment + observedBaseline )
+}
+
+doLmerFit <- function(df){
+  dflong <- melt(df[, .(id=1:.N, treatment, observedBaseline, observedFollowUp)] , id.vars = c("id", "treatment") )
+  mermod1 <- lmerTest::lmer(data=dflong , log(value) ~ variable*treatment + (1|id))
+  mermod1
+}
+
+getGraph <- function(df){
+  ggplot( df ) + aes(x=factor(treatment), y=observedFollowUp) + geom_boxplot() + geom_point() + 
+  ggpubr::stat_compare_means()
+}
+
+getPowerPvalues <- function(N=20,d=10,sdlog=1,baselineGeoMean=1,sdBaselineLog=1,reps=100){
+  replicate(reps, oneDataSim(N,d,sdlog,baselineGeoMean,sdBaselineLog) |> getPvalue())
+}
+
+
+
+
+```
+
+So now we have a system for working out the power for a trial.  Let's try to get the inputs from the data we have:
+
+We need:
+
+* The baseline mean
+* The baseline truth standard deviation (unobserved)
+* The standard deviation conditional on the truth
+* (Do we assume that the treatment effect is identical for everybody?)
+
+
+From: tripkovic:
+
+
+NOT LOGGED (NATURAL SCALE)
+At baseline, mean is 58.8 (95% CI=51.4 to 66.2) (WHITE PEOPLE)
+After treatment six week mean is 72.4 (66.6 to 78.2, N=66) or 87.7 (82.0 to 93.6, N=70) or 83.7 (78.1 to 89.3, N=67) depending on the group.
+
+
+LOG SCALE ANALYSIS
+25-OH-D3
+
+baseline 
+(these are the marginal means from the models I think?)
+(asymmetric confidence intervals suggest log scale analysis)
+32.1 (27.5 to 37.6) (n=65)
+22.7 (19.9 to 25.8) (n=66) (D2 group after treatment n=67)
+25.4 (22.3 to 28.9) (n=65) (Placebo group after treatment n=66)
+
+61.4 (54.0 to 69.8) (D3 group after treatment n=70)
+61.5 (54.0 to 69.9) (second D3 group after treatment n=67)
+
+Change between D3J group and placebo was: 42.9 nmol/L; 95% CI: 35.0, 50.8 nmol/L; P < 0.0005
+
+## The CI widths on a log scale vary by time point.
+## How could this have come from a general LMM?
+## I would have expected the standard error to be the same for all of the marginal mean estimates.
+log(32.1/27.5)
+log(37.6/32.1)
+log(69.9/61.5)
+log(61.5/54.0)
+
+### Percent change in the D3 group in D3 was 185.8% (148.4% to 228.7%) compared to placebo
+### 281.9%; 95% CI: 242.1%, 326.3% compared to the D2 group.
+
+placebo was 32.1 to 24.3
+d3 was 30.0 to 65.2
+
+1/((24.3/32.1) / (65.2/30.0))
+
+The fold change compared to placebo is 2.87 which suggests that the % change is this minus 100%.
+
+## These are EXACTLY (ish) the same..
+log(248.4 / 285.8)
+log(285.8 / 328.7)
+
+So the difference between groups is 65.2 vs 24.2.
+
+We will analyse the data on a log scale.
+The geometric mean difference we will induce is:
+
+Placebo: 25 (log(25)=3.21)
+Active: 35 (log(35)=3.56)
+
+So a difference of 0.35 in log 25-OH-D2
+We know the standard error for the mean difference adjusted for baseline is:
+
+log(285.8/248.4) / 2 = 0.0701.  (N=135 in active vs 65 in control)
+
+So the effective standard deviation is:
+
+0.0701/sqrt(1/135 + 1/65) = 0.464 on a log scale.
+
+## Is this standard deviation applicable?
+power.t.test( delta=log(35/25) , sd=0.464, power=0.8)
+
+## I want the standard deviation of a log change score
+## Or the standard deviation of a log follow-up, with an effective correction for baseline
+
+Do this for the larger effect size:
+
+281.9%; 95% CI: 242.1%, 326.3%
+So fold change of:
+381.9 (343.1 to 426.3)
+
+So SE mean difference of: log(426.3/381.9) / 2
+
+0.05499
+
+This implies a standard deviation of on observation on the log-scale of:
+
+0.05499 / sqrt(1/135 + 1/135) = 0.4517
+
+About twice the '
+
+### What will the effective standard deviation be on the natural scale?
+
+This is the mean and standard deviation of a log-normal distribution..
+
+```{r }
+rlnorm(1000 , meanlog=log(35) , sdlog=0.4517) |> mean()
+rlnorm(1000 , meanlog=log(25) , sdlog=0.4517) |> mean()
+
+## Suggests a standard deviation of 
+rlnorm(1000 , meanlog=log(25) , sdlog=0.4517) |> sd()
+rlnorm(1000 , meanlog=log(35) , sdlog=0.4517) |> sd()
+
+sqrt((13.27^2 + 18.87^2)/2)
+## Average standard deviation of about 16.3 on the natural scale (adjusted for baseline)
+
+pwr::pwr.t.test(d = (38.2-27.5)/16.31, power=0.8)
+power.t.test(delta = (38.2-27.5), sd=16.31, power=0.8)
+## Suggests 38 per group need to complete.
+```
+
+## So this checks out.
+
+Compare with Natri..
+
+The values shown for change scores *must* be standard deviations.
+Otherwise the p-values don't make sense.
+
+The increase in 25-OHD in the wheat group did not differ from the vitamin D group (p=0.571)
+We know the mean difference was 16.3 in the wheat group, and 19.5 in the supplement group.
+
+So the mean difference in change scores is 3.2.
+
+A p-value of 0.571 suggests a t-statistic of (df=20)
+
+```{r }
+qt(1-(1-0.95)/2,df = 20) #=1.96
+qt(1-(1-0.571)/2,df = 20) #=0.81
+
+# A t-statistic of 0.79 with a mean difference of 3.2 suggests a standard error (difference in means) of:
+# 3.2 / 0.79 = 3.95
+
+# Given there are 11 observations per group, this suggsts a pooled standard deviation for a change score of:
+
+3.95 / sqrt(1/11 + 1/11) 
+
+9.26
+
+## OK SO THESE MUST BE STANDARD DEVIATIONS
+
+#The pooled standard deviation is:  9.26
+
+## From the raw change scores, the standard deviations would be:
+
+((4.0^2 + 10.1^2)/2) |> sqrt()
+
+## Suggests 7.7 as the pooled standard deviation.
+
+#Then we get 
+
+# standard error in the fortified rye group of 
+6.2/sqrt(10) #= 1.96
+# The t-statistic would be: 14.9/1.96 = 7.6
+# This matches the p-value in the figure.
+1-pt(7.6, 10)
+
+## Standard deviation of a change score is 10 from this study.
+
+
+
+```
+
+```
+
+
+### Gronborg
+
+
+
